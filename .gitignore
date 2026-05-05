@@ -10,6 +10,7 @@ DerivedData/
 
 # Secrets — never commit API keys
 Intashyo/Secrets.xcconfig
+Intashyo/GeminiKey.plist
 *.xcconfig
 
 # macOS
