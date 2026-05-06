@@ -241,14 +241,15 @@ struct AIChatView: View {
         Haptics.impact(.light)
         errorMessage = nil
         inputText = ""
+        let history = messages          // capture history BEFORE appending new message
         messages.append(ChatMessage(role: .user, content: trimmed))
         isLoading = true
 
         Task {
             do {
                 let reply = try await aiService.sendMessage(
-                    conversation: messages,
-                    userMessage: trimmed,
+                    conversation: history,  // history without the new message
+                    userMessage: trimmed,   // new message appended by AIService
                     language: L.aiLanguageName,
                     city: appState.userCity,
                     durationInUS: appState.durationInUS
@@ -258,7 +259,11 @@ struct AIChatView: View {
                 Haptics.success()
             } catch AIError.rateLimited {
                 isLoading = false
-                errorMessage = L.errorRateLimit
+                errorMessage = "Quota reached — wait 1 min or check aistudio.google.com/app/u/0/apikey"
+                Haptics.error()
+            } catch AIError.apiError(_, let msg) {
+                isLoading = false
+                errorMessage = msg
                 Haptics.error()
             } catch {
                 isLoading = false

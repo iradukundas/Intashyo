@@ -131,8 +131,8 @@ final class AIService {
         let decoded = try JSONDecoder().decode(GeminiResponse.self, from: data)
 
         if let apiErr = decoded.error {
-            if apiErr.code == 429 { throw AIError.rateLimited }
-            throw AIError.serverError(apiErr.code)
+            if apiErr.code == 429 || http.statusCode == 429 { throw AIError.rateLimited }
+            throw AIError.apiError(apiErr.code, apiErr.message)
         }
 
         guard http.statusCode == 200 else { throw AIError.serverError(http.statusCode) }
@@ -147,13 +147,15 @@ enum AIError: LocalizedError {
     case missingKey
     case invalidResponse
     case rateLimited
+    case apiError(Int, String)
     case serverError(Int)
 
     var errorDescription: String? {
         switch self {
         case .missingKey:      return "API key not configured."
         case .invalidResponse: return "Invalid server response."
-        case .rateLimited:     return "Rate limited."
+        case .rateLimited:     return "Quota reached. Wait 1 minute and try again, or check your usage at aistudio.google.com."
+        case .apiError(let code, let msg): return "API error \(code): \(msg)"
         case .serverError(let code): return "Server error \(code)."
         }
     }
