@@ -21,6 +21,11 @@ final class AppState {
 
     var L: L { Intashyo.L(lang: selectedLanguage) }
 
+    /// First word/component of the user's location string, e.g. "Atlanta" from "Atlanta, Georgia, United States"
+    var displayCity: String {
+        Resource.displayCity(for: userCity)
+    }
+
     var checklistCompletedCount: Int {
         checklistItems.filter { checklistProgress[$0.id] == true }.count
     }
@@ -41,6 +46,7 @@ final class AppState {
         if let saved = UserDefaults.standard.dictionary(forKey: "checklistProgress") as? [String: Bool] {
             checklistProgress = saved
         }
+        savedResources = UserDefaults.standard.stringArray(forKey: "savedResources") ?? []
     }
 
     func save() {
@@ -50,6 +56,7 @@ final class AppState {
         if let dur = durationInUS { UserDefaults.standard.set(dur, forKey: "durationInUS") }
         UserDefaults.standard.set(onboardingComplete, forKey: "onboardingComplete")
         UserDefaults.standard.set(checklistProgress, forKey: "checklistProgress")
+        UserDefaults.standard.set(savedResources, forKey: "savedResources")
     }
 
     func completeOnboarding() {
@@ -64,6 +71,21 @@ final class AppState {
 
     func toggleChecklist(_ id: String) {
         checklistProgress[id] = !(checklistProgress[id] ?? false)
+        save()
+    }
+
+    // MARK: - Saved Resources
+
+    func isSaved(_ id: String) -> Bool {
+        savedResources.contains(id)
+    }
+
+    func toggleSave(_ id: String) {
+        if let idx = savedResources.firstIndex(of: id) {
+            savedResources.remove(at: idx)
+        } else {
+            savedResources.append(id)
+        }
         save()
     }
 }

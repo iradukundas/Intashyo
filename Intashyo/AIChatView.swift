@@ -249,7 +249,9 @@ struct AIChatView: View {
                 let reply = try await aiService.sendMessage(
                     conversation: messages,
                     userMessage: trimmed,
-                    language: L.aiLanguageName
+                    language: L.aiLanguageName,
+                    city: appState.userCity,
+                    durationInUS: appState.durationInUS
                 )
                 isLoading = false
                 messages.append(ChatMessage(role: .assistant, content: reply))

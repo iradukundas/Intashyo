@@ -107,7 +107,7 @@ struct ResourcesView: View {
                             ResourceCategoryRow(
                                 category: cat,
                                 L: L,
-                                count: Resource.forCategory(cat).count
+                                count: Resource.forCategory(cat, city: appState.userCity).count
                             ) {
                                 Haptics.impact(.light)
                                 withAnimation { selectedCategory = cat }

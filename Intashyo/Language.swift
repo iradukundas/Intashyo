@@ -152,6 +152,9 @@ struct L {
     // Language Modal
     var changeLang:        String { s("Hindura ururimi",        "Changer de langue",             "Badilisha lugha",        "Change language") }
 
+    // Profile — Saved resources
+    var savedResources:    String { s("BYABITSWE",              "RESSOURCES ENREGISTRÉES",       "RASILIMALI ZILIZOHIFADHIWA", "SAVED RESOURCES") }
+
     // Tab Bar
     var tabHome:           String { s("Ahabanza",               "Accueil",                       "Nyumbani",               "Home") }
     var tabResources:      String { s("Ibikorwa",               "Ressources",                    "Rasilimali",             "Resources") }

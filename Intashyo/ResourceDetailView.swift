@@ -3,12 +3,15 @@
 import SwiftUI
 
 struct ResourceDetailView: View {
+    @Environment(AppState.self) private var appState
     let category: ResourceCategory
     let L: L
     var onBack: () -> Void
     var onAskAI: (() -> Void)? = nil
 
-    private var providers: [Resource] { Resource.forCategory(category) }
+    private var providers: [Resource] {
+        Resource.forCategory(category, city: appState.userCity)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,7 +22,9 @@ struct ResourceDetailView: View {
                     Text("\(category.emoji) \(category.localizedName(L))")
                         .font(.fraunces(22, weight: .bold))
                         .foregroundColor(.ink)
-                    Text("\(L.nearYou) · Atlanta, GA")
+                    Text(appState.userCity.isEmpty
+                         ? L.nearYou
+                         : "\(L.nearYou) · \(appState.displayCity)")
                         .font(.jakarta(12))
                         .foregroundColor(.muted)
                 }
@@ -32,7 +37,14 @@ struct ResourceDetailView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     ForEach(providers) { provider in
-                        ProviderCard(resource: provider, L: L)
+                        ProviderCard(
+                            resource: provider,
+                            L: L,
+                            isSaved: appState.isSaved(provider.id)
+                        ) {
+                            Haptics.impact(.light)
+                            appState.toggleSave(provider.id)
+                        }
                     }
 
                     // Ask AI strip
@@ -75,6 +87,8 @@ struct ResourceDetailView: View {
 struct ProviderCard: View {
     let resource: Resource
     let L: L
+    let isSaved: Bool
+    let onSave: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -99,14 +113,26 @@ struct ProviderCard: View {
                 }
             }
 
-            // Location row
-            HStack(spacing: 5) {
-                Image(systemName: "mappin")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.muted)
-                Text(String(format: "%.1f mi %@", resource.distanceMiles, L.away))
-                    .font(.jakarta(12))
-                    .foregroundColor(.muted)
+            // Location row (only show distance when known)
+            if resource.distanceMiles > 0 {
+                HStack(spacing: 5) {
+                    Image(systemName: "mappin")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.muted)
+                    Text(String(format: "%.1f mi %@", resource.distanceMiles, L.away))
+                        .font(.jakarta(12))
+                        .foregroundColor(.muted)
+                }
+            } else {
+                HStack(spacing: 5) {
+                    Image(systemName: "mappin")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.muted)
+                    Text(resource.address.components(separatedBy: ",").prefix(2).joined(separator: ","))
+                        .font(.jakarta(12))
+                        .foregroundColor(.muted)
+                        .lineLimit(1)
+                }
             }
 
             // Action buttons
@@ -145,16 +171,17 @@ struct ProviderCard: View {
                 }
                 .buttonStyle(ScaleButtonStyle())
 
-                // Save
-                Button {} label: {
-                    Text(L.save)
-                        .font(.jakarta(14, weight: .semibold))
-                        .foregroundColor(.ink)
+                // Save / bookmark
+                Button(action: onSave) {
+                    Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(isSaved ? .accent : .ink)
                         .padding(.vertical, 10)
                         .padding(.horizontal, 14)
                         .background(Color.surface)
                         .cornerRadius(10)
                         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.faint, lineWidth: 1))
+                        .animation(.easeInOut(duration: 0.15), value: isSaved)
                 }
                 .buttonStyle(ScaleButtonStyle())
             }

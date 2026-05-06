@@ -77,21 +77,31 @@ final class AIService {
     func sendMessage(
         conversation: [ChatMessage],
         userMessage: String,
-        language: String
+        language: String,
+        city: String = "",
+        durationInUS: Int? = nil
     ) async throws -> String {
         guard !apiKey.isEmpty else { throw AIError.missingKey }
 
         let endpoint = "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent?key=\(apiKey)"
         guard let url = URL(string: endpoint) else { throw AIError.invalidResponse }
 
+        let cityContext = city.isEmpty ? "the United States" : city
+        let durationContext: String = {
+            guard let d = durationInUS else { return "" }
+            if d == 0 { return " They just arrived." }
+            return " They have been in the US for about \(d) month\(d == 1 ? "" : "s")."
+        }()
+
         let systemPrompt = """
         You are Intashyo, a warm and knowledgeable guide for African immigrants \
-        settling in the United States. The user has selected \(language) as their \
-        language. Answer all questions helpfully, concisely, and in \(language) only. \
-        Keep responses under 80 words. Focus on practical, actionable information \
-        about housing, food assistance, healthcare, legal aid, employment, and \
-        documents. If you don't know something specific to the user's city, say so \
-        and suggest they call 211.
+        settling in the United States. The user is located in \(cityContext).\(durationContext) \
+        Answer all questions helpfully, concisely, and in \(language) only. \
+        Keep responses under 100 words. When possible, tailor advice specifically to \
+        \(cityContext) — local agencies, phone numbers, or neighbourhoods. \
+        Focus on practical, actionable information about housing, food assistance, \
+        healthcare, legal aid, employment, and documents. \
+        If you don't have city-specific details, suggest they call 211.
         """
 
         // Build conversation history (Gemini uses "user"/"model" roles)
