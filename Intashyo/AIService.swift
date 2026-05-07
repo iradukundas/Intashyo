@@ -72,7 +72,7 @@ final class AIService {
         return key
     }
 
-    private let model = "gemini-2.0-flash"
+    private let model = "gemini-1.5-pro"
 
     func sendMessage(
         conversation: [ChatMessage],
@@ -83,7 +83,7 @@ final class AIService {
     ) async throws -> String {
         guard !apiKey.isEmpty else { throw AIError.missingKey }
 
-        let endpoint = "https://generativelanguage.googleapis.com/v1beta/models/\(model):generateContent?key=\(apiKey)"
+        let endpoint = "https://generativelanguage.googleapis.com/v1/models/\(model):generateContent?key=\(apiKey)"
         guard let url = URL(string: endpoint) else { throw AIError.invalidResponse }
 
         let cityContext = city.isEmpty ? "the United States" : city
@@ -116,7 +116,7 @@ final class AIService {
         let body = GeminiRequest(
             system_instruction: .init(parts: [.init(text: systemPrompt)]),
             contents: contents,
-            generationConfig: .init(maxOutputTokens: 256, temperature: 0.7)
+            generationConfig: .init(maxOutputTokens: 512, temperature: 0.7)
         )
 
         var request = URLRequest(url: url)
