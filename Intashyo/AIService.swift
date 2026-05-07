@@ -20,7 +20,7 @@ enum ChatRole {
 // MARK: - Gemini API Models
 
 private struct GeminiRequest: Encodable {
-    let system_instruction: SystemInstruction
+    let systemInstruction: SystemInstruction
     let contents: [GeminiContent]
     let generationConfig: GenerationConfig
 
@@ -114,7 +114,7 @@ final class AIService {
         contents.append(GeminiRequest.GeminiContent(role: "user", parts: [.init(text: userMessage)]))
 
         let body = GeminiRequest(
-            system_instruction: .init(parts: [.init(text: systemPrompt)]),
+            systemInstruction: .init(parts: [.init(text: systemPrompt)]),
             contents: contents,
             generationConfig: .init(maxOutputTokens: 512, temperature: 0.7)
         )
